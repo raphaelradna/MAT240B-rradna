@@ -20,10 +20,12 @@ int main(int argc, char* argv[]) {
     harmonicCount = 0;
     while (frequency * harmonicCount < SAMPLE_RATE / 2.0) harmonicCount++;
     s = 0;
-    for (int h = 0; h < harmonicCount; ++h)
+    for (int h = 0; h < harmonicCount; ++h) {
       //s += cos(2.0 * pi * h * phase); //unipolar
-      s += sin(2.0 * pi * h * phase); //bipolar
-      s /= harmonicCount;
+      if (h == 0) continue;
+      if ((h & 1) == 0) continue;
+      s += (sin(2.0 * pi * h * phase)) / h; //bipolar
+    }
     say(s);
     phase += increment;
   }
