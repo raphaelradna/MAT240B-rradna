@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
   float _ = 0;
   if (pWav->channels == 1)
     for (unsigned i = 0; i < pWav->totalPCMFrameCount; ++i) {
-      float x = asin(pSampleData[i]);
-      float y = asin(_);
+      float x = asinf(pSampleData[i]);
+      float y = asinf(_);
       float phasFreq = (((x-y)/pi*2)+1)*freq;
       phasor.frequency(phasFreq);
       say(sinf(phasor()+y));
