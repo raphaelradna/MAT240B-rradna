@@ -6,21 +6,8 @@ struct Phasor {
   float increment = 0.001;  // led to an low F
 
   void period(float seconds) { frequency(1 / seconds); }
-  void frequency(float hertz) {
-    // this function may run per-sample. all this stuff costs performance
-
-    // XXX check for INSANE frequencies
-    if (hertz > SAMPLE_RATE) {
-      printf("hertz > SAMPLE_RATE\n");
-      exit(1);
-    }
-    if (hertz < -SAMPLE_RATE) {
-      printf("hertz < -SAMPLE_RATE\n");
-      exit(1);
-    }
-    increment = hertz / SAMPLE_RATE;
-  }
-  float frequency() { return SAMPLE_RATE * increment; }
+  void frequency(float hertz) { increment = hertz / SAMPLE_RATE; }
+  //float frequency() { return SAMPLE_RATE * increment; }
   void modulate(float hertz) { increment += hertz / SAMPLE_RATE; }
 
   float operator()() {
@@ -34,6 +21,12 @@ struct Phasor {
     return phase;
   }
 };
+
+float wrap(float value, float min, float max) {
+    if (value > max) value -= max;
+    if (value < min) value += min;
+    return value;
+}
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
@@ -53,17 +46,18 @@ int main(int argc, char* argv[]) {
   drwav_close(pWav);
 
   Phasor phasor;
-  float freq = 110;
+  float freq = 220;
   float _ = 0;
+  float twopi = pi*2;
+
   if (pWav->channels == 1)
-    for (unsigned i = 0; i < pWav->totalPCMFrameCount; ++i) {
-      float x = asinf(pSampleData[i]);
-      float y = asinf(_);
-      float phasFreq = (((x-y)/pi*2)+1)*freq;
+    for (unsigned n = 0; n < pWav->totalPCMFrameCount; ++n) {
+      float x = asin(pSampleData[n]);
+      float y = asin(_);
+      float phasFreq = (((x-y)/twopi)+1)*freq;
       phasor.frequency(phasFreq);
-      say(sinf(phasor()+y));
-      _ = pSampleData[i];
-      //printf("%f\n", pSampleData[i]);
+      say(sin((wrap(phasor()+y,0,1))*twopi)-sin(phasor()*twopi));
+      _ = pSampleData[n];
     }
   else if (pWav->channels == 2) {
     for (unsigned i = 0; i < pWav->totalPCMFrameCount; ++i)
